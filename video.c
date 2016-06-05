@@ -44,7 +44,7 @@
 #define USE_GRAB			///< experimental grab code
 #define noUSE_GLX			///< outdated GLX code
 #define USE_DOUBLEBUFFER		///< use GLX double buffers
-//#define USE_VAAPI				///< enable vaapi support
+#define USE_VAAPI				///< enable vaapi support
 //#define USE_VDPAU				///< enable vdpau support
 //#define USE_BITMAP			///< use vdpau bitmap surface
 //#define AV_INFO				///< log a/v sync informations
@@ -4075,6 +4075,7 @@ static void VaapiSetupVideoProcessing(VaapiDecoder * decoder)
     for (u = 0; u < filtertype_n; ++u) {
 	switch (filtertypes[u]) {
 	    case VAProcFilterNoiseReduction:
+	        break;
 		Info("video/vaapi: noise reduction supported\n");
 		VaapiConfigDenoise.active = 1;
 		filter_buf_id = VaapiSetupParameterBufferProcessing(decoder, filtertypes[u], VaapiConfigDenoise.def_value *
@@ -4135,6 +4136,7 @@ static void VaapiSetupVideoProcessing(VaapiDecoder * decoder)
 		decoder->filters[decoder->filter_n++] = filter_buf_id;
 		break;
 	    case VAProcFilterSharpening:
+	        break;
 		Info("video/vaapi: sharpening supported\n");
 		VaapiConfigSharpen.active = 1;
 		// Sharpening needs to on a separated pipeline apart from vebox
@@ -4147,6 +4149,7 @@ static void VaapiSetupVideoProcessing(VaapiDecoder * decoder)
 		}
 		break;
 	    case VAProcFilterColorBalance:
+                break;
 		Info("video/vaapi: enabling color balance filters\n");
 		colorbalance_cap_n = VAProcColorBalanceCount;
 		vaQueryVideoProcFilterCaps(VaDisplay, decoder->vpp_ctx,
@@ -4241,6 +4244,7 @@ static void VaapiSetupVideoProcessing(VaapiDecoder * decoder)
 		decoder->filters[decoder->filter_n++] = filter_buf_id;
 		break;
 	    case VAProcFilterSkinToneEnhancement:
+	        break;
 		VaapiConfigStde.active = 1;
 		Info("video/vaapi: skin tone enhancement supported\n");
 		filter_buf_id = VaapiSetupParameterBufferProcessing(decoder, filtertypes[u], VaapiConfigStde.def_value *
