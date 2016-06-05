@@ -111,6 +111,7 @@ static const char *const AvFilterRules[eAvFilterConfigCount] = {
 static char ConfigMakePrimary;		///< config primary wanted
 static char ConfigHideMainMenuEntry;	///< config hide main menu entry
 static char ConfigDetachFromMainMenu;	///< detach from main menu entry instead of suspend
+static char ConfigShutdownWhenDetached;	///< Allow shutdown while frontend is detached
 static char ConfigSuspendClose;		///< suspend should close devices
 static char ConfigSuspendX11;		///< suspend should stop x11
 
@@ -126,8 +127,8 @@ static char ConfigVideoBlackPicture;	///< config enable black picture mode
 char ConfigVideoClearOnSwitch;		///< config enable Clear on channel switch
 
 static int ConfigVideoBrightness;	///< config video brightness
-static int ConfigVideoContrast = 1000;	///< config video contrast
-static int ConfigVideoSaturation = 1000;	///< config video saturation
+static int ConfigVideoContrast = 10;	///< config video contrast
+static int ConfigVideoSaturation = 10;	///< config video saturation
 static int ConfigVideoHue;		///< config video hue
 static int ConfigVideoStde = 0;		///< config video skin tone enhancement
 
@@ -739,6 +740,7 @@ class cMenuSetupSoft:public cMenuSetupPage
     int MakePrimary;
     int HideMainMenuEntry;
     int DetachFromMainMenu;
+    int ShutdownWhenDetached;
     int OsdSize;
     int OsdWidth;
     int OsdHeight;
@@ -981,6 +983,8 @@ void cMenuSetupSoft::Create(void)
 	Add(SeparatorItem(tr("Suspend")));
 	Add(new cMenuEditBoolItem(tr("Detach from main menu entry"),
 		&DetachFromMainMenu, trVDR("no"), trVDR("yes")));
+	Add(new cMenuEditBoolItem(tr("Allow VDR shutdown when detached"), 
+		&ShutdownWhenDetached, trVDR("no"), trVDR("yes")));
 	Add(new cMenuEditBoolItem(tr("Suspend closes video+audio"),
 		&SuspendClose, trVDR("no"), trVDR("yes")));
 	Add(new cMenuEditBoolItem(tr("Suspend stops x11"), &SuspendX11,
@@ -1293,6 +1297,7 @@ cMenuSetupSoft::cMenuSetupSoft(void)
     MakePrimary = ConfigMakePrimary;
     HideMainMenuEntry = ConfigHideMainMenuEntry;
     DetachFromMainMenu = ConfigDetachFromMainMenu;
+    ShutdownWhenDetached = ConfigShutdownWhenDetached;
     //
     //	osd
     //
@@ -1446,6 +1451,8 @@ void cMenuSetupSoft::Store(void)
 	HideMainMenuEntry);
     SetupStore("DetachFromMainMenu", ConfigDetachFromMainMenu =
 	DetachFromMainMenu);
+    SetupStore("ShutdownWhenDetached", ConfigShutdownWhenDetached =
+	ShutdownWhenDetached);
     switch (OsdSize) {
 	case 0:
 	    OsdWidth = 0;
@@ -2421,12 +2428,17 @@ eOSState cSoftHdMenu::ProcessKey(eKeys key)
 	case osUser1:
 	    // not already suspended
 	    if (SuspendMode == NOT_SUSPENDED && !cSoftHdControl::Player) {
-		cControl::Launch(new cSoftHdControl);
-		cControl::Attach();
 		if (ConfigDetachFromMainMenu) {
+		    if (!ConfigShutdownWhenDetached)
+		    {
+			cControl::Launch(new cSoftHdControl);
+			cControl::Attach();
+		    }
 		    Suspend(1, 1, 0);
 		    SuspendMode = SUSPEND_DETACHED;
 		} else {
+		    cControl::Launch(new cSoftHdControl);
+		    cControl::Attach();
 		    Suspend(ConfigSuspendClose, ConfigSuspendClose,
 			ConfigSuspendX11);
 		    SuspendMode = SUSPEND_NORMAL;
@@ -3257,6 +3269,10 @@ bool cPluginSoftHdDevice::SetupParse(const char *name, const char *value)
 	ConfigDetachFromMainMenu = atoi(value);
 	return true;
     }
+    if (!strcasecmp(name, "ShutdownWhenDetached")) {
+	ConfigShutdownWhenDetached = atoi(value);
+	return true;
+    }
     if (!strcasecmp(name, "Osd.Width")) {
 	ConfigOsdWidth = atoi(value);
 	VideoSetOsdSize(ConfigOsdWidth, ConfigOsdHeight);
@@ -3795,8 +3811,11 @@ cString cPluginSoftHdDevice::SVDRPCommand(const char *command,
 	if (cSoftHdControl::Player) {	// already suspended
 	    return "can't suspend SoftHdDevice already suspended";
 	}
-	cControl::Launch(new cSoftHdControl);
-	cControl::Attach();
+	if (!ConfigShutdownWhenDetached)
+	{
+	    cControl::Launch(new cSoftHdControl);
+	    cControl::Attach();
+	}
 	Suspend(1, 1, 0);
 	SuspendMode = SUSPEND_DETACHED;
 	return "SoftHdDevice is detached";
