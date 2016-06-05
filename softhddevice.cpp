@@ -126,8 +126,8 @@ static char ConfigVideoBlackPicture;	///< config enable black picture mode
 char ConfigVideoClearOnSwitch;		///< config enable Clear on channel switch
 
 static int ConfigVideoBrightness;	///< config video brightness
-static int ConfigVideoContrast = 1000;	///< config video contrast
-static int ConfigVideoSaturation = 1000;	///< config video saturation
+static int ConfigVideoContrast = 10;	///< config video contrast
+static int ConfigVideoSaturation = 10;	///< config video saturation
 static int ConfigVideoHue;		///< config video hue
 static int ConfigVideoStde = 0;		///< config video skin tone enhancement
 
