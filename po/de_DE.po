@@ -504,6 +504,9 @@ msgstr "Unterbrechen"
 msgid "Detach from main menu entry"
 msgstr "Detach durch Hauptmenüeintrag"
 
+msgid "Allow VDR shutdown when detached"
+msgstr "VDR shutdown erlaubt wenn detached"
+
 msgid "Suspend closes video+audio"
 msgstr "Unterbrechen schließt Video+Audio"
 
